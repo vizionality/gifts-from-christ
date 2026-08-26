@@ -35,8 +35,10 @@ export function ProductCard({
         )}
 
         <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {/* "Sold out" would be a false claim for a line we have never
+              stocked. "Coming soon" is what is actually true. */}
           {soldOut ? (
-            <Badge tone="muted">Sold out</Badge>
+            <Badge tone="muted">Coming soon</Badge>
           ) : onSale ? (
             <Badge tone="sale">Sale</Badge>
           ) : fields.badge ? (

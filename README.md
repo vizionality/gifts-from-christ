@@ -53,9 +53,12 @@ wordpress/
     20-acf-fields.php         ACF field groups registered in code
     30-acf-store-api.php      Injects ACF into Store API + /shop-config
     40-checkout-handoff.php   Signed cart handoff, order lookup, return URL
+    50-waitlist.php           Waitlist CPT + secured REST endpoint
   scripts/
     provision.sh              Idempotent install + configure
     seed.php                  Catalogue, images (GD, offline), ACF content
+    import-supplier-csv.php   Supplier CSV -> out-of-stock products
+    sample-supplier-export.csv  Fabricated example showing the expected columns
 web/
   src/app/                    App Router pages + route handlers
   src/components/             UI, product, cart, layout components
@@ -274,6 +277,77 @@ The `wpcli` service's entrypoint runs the provisioning script, so override it fo
 ```bash
 docker compose run --rm --entrypoint wp wpcli plugin list
 ```
+
+---
+
+## Demand testing (painted door)
+
+Supplier lines are listed but deliberately **not purchasable**. The shopper is
+told plainly that the item is not in stock, and the intent to buy is recorded.
+The point is to decide a first bulk order from evidence rather than a guess.
+
+### Importing a supplier catalogue
+
+Export your catalogue from the supplier's wholesale portal as CSV, drop it in
+`wordpress/scripts/`, then:
+
+```bash
+docker compose run --rm --entrypoint wp wpcli eval-file /scripts/import-supplier-csv.php /scripts/kerusso.csv kerusso
+```
+
+Products are created as `outofstock` with stock management **off**, so Woo does
+not treat the zero as a temporary dip that backorders could satisfy.
+
+The importer matches on SKU, so re-running updates rather than duplicates.
+Column names are matched loosely — `Item Number`, `item_number` and `SKU` all
+resolve to the same field — because no two supplier exports agree. Required:
+something matching `sku`, `name` and `price`. Optional: description, wholesale
+cost, category, image URL, brand. See `sample-supplier-export.csv` for the shape — its rows are fabricated
+placeholders, not real supplier pricing.
+
+Wholesale cost is stored in `_sg_wholesale_cost` for margin maths and is never
+exposed through the Store API.
+
+### What gets measured
+
+| Event | Fires when | Why |
+|---|---|---|
+| `view_item_list` | a grid renders | impressions, so interest is comparable |
+| `view_item` | a product page opens | depth of interest |
+| `add_to_cart` | "Notify me when available" is clicked | **the demand signal** |
+| `join_waitlist` | an email is submitted | intent strong enough to hand over an address |
+
+`add_to_cart` is used for unstocked items on purpose: GA4's built-in **Item
+report ranks by "Items added to cart"**, which is exactly the bulk-buy
+shortlist, with no custom reporting to build. Each event carries
+`fulfillable: false` so genuine sales can be separated later, once some lines
+are stocked.
+
+Expect add-to-cart counts against a zero purchase rate for the duration of the
+test. That is the design, not a tracking fault.
+
+Set `NEXT_PUBLIC_GA_ID` on Vercel only. Leaving it empty locally keeps your own
+browsing out of the property that decides the buying list.
+
+### Reading the results
+
+- **GA4 → Reports → Monetisation → Ecommerce purchases**, sorted by *Items
+  added to cart*. The top of that list is the first order.
+- **Ratio matters more than volume.** An item with 40 views and 12 signups
+  beats one with 400 views and 15; the second is getting traffic, the first is
+  getting demand.
+- **WordPress → Waitlist** holds the email addresses, and the Products list
+  screen gains a *Waitlist* column so the tally sits beside the catalogue.
+
+### Honesty
+
+Products carry a "Coming soon" badge rather than "Sold out", because a line
+that was never stocked did not sell out. The product page states "Not in stock
+yet" above the button. No payment is taken and no order is created — the only
+thing collected is an email address, used for one notification.
+
+If you later run affiliate links alongside this, US FTC rules require visible
+disclosure.
 
 ## Known limitations
 

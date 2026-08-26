@@ -1,0 +1,140 @@
+/**
+ * GA4 ecommerce events.
+ *
+ * The shop is running a painted-door demand test: Kerusso products are listed
+ * as out of stock, and the intent to buy is what we are measuring. `add_to_cart`
+ * is fired for that intent deliberately, because GA4's built-in Item report
+ * ranks by "Items added to cart" — which is exactly the bulk-buy shortlist.
+ *
+ * Consequence to expect in the reports: add-to-cart counts with a zero purchase
+ * rate, by design, for as long as the test runs.
+ */
+
+import type { WooProduct } from "@/lib/woo/types";
+
+type GtagArgs =
+  | ["event", string, Record<string, unknown>]
+  | ["config", string, Record<string, unknown>?]
+  | ["consent", string, Record<string, unknown>];
+
+declare global {
+  interface Window {
+    gtag?: (...args: GtagArgs) => void;
+    dataLayer?: unknown[];
+  }
+}
+
+export interface AnalyticsItem {
+  item_id: string;
+  item_name: string;
+  item_brand?: string;
+  item_category?: string;
+  item_variant?: string;
+  price: number;
+  quantity?: number;
+  index?: number;
+}
+
+/** Store API prices are integer minor units; GA4 wants a major-unit number. */
+function toMajorUnits(minor: string | number, minorUnit: number): number {
+  const value = typeof minor === "string" ? Number(minor) : minor;
+  if (!Number.isFinite(value)) return 0;
+  return Number((value / 10 ** minorUnit).toFixed(minorUnit));
+}
+
+export function toAnalyticsItem(
+  product: WooProduct,
+  extras: { quantity?: number; index?: number; variant?: string } = {},
+): AnalyticsItem {
+  return {
+    item_id: product.sku || String(product.id),
+    item_name: product.name,
+    item_brand: product.extensions?.spiritual_gifts?.badge || undefined,
+    item_category: product.categories[0]?.name,
+    item_variant: extras.variant,
+    price: toMajorUnits(
+      product.prices.price,
+      product.prices.currency_minor_unit,
+    ),
+    quantity: extras.quantity,
+    index: extras.index,
+  };
+}
+
+function send(event: string, params: Record<string, unknown>): void {
+  if (typeof window === "undefined" || typeof window.gtag !== "function") {
+    return;
+  }
+  window.gtag("event", event, params);
+}
+
+function currencyOf(product: WooProduct): string {
+  return product.prices.currency_code || "USD";
+}
+
+export function trackViewItem(product: WooProduct): void {
+  send("view_item", {
+    currency: currencyOf(product),
+    value: toMajorUnits(product.prices.price, product.prices.currency_minor_unit),
+    items: [toAnalyticsItem(product)],
+  });
+}
+
+export function trackViewItemList(
+  products: WooProduct[],
+  listName: string,
+): void {
+  if (!products.length) return;
+
+  send("view_item_list", {
+    item_list_name: listName,
+    items: products.map((product, index) =>
+      toAnalyticsItem(product, { index }),
+    ),
+  });
+}
+
+export function trackSelectItem(
+  product: WooProduct,
+  listName: string,
+  index: number,
+): void {
+  send("select_item", {
+    item_list_name: listName,
+    items: [toAnalyticsItem(product, { index })],
+  });
+}
+
+/**
+ * The demand signal. Fired when a shopper asks for an item we cannot yet
+ * fulfil, so it doubles as the ranking input for the first bulk order.
+ */
+export function trackAddToCart(
+  product: WooProduct,
+  options: { quantity?: number; variant?: string; fulfillable: boolean },
+): void {
+  const { quantity = 1, variant, fulfillable } = options;
+
+  send("add_to_cart", {
+    currency: currencyOf(product),
+    value:
+      toMajorUnits(product.prices.price, product.prices.currency_minor_unit) *
+      quantity,
+    // Custom dimension: lets you segment genuine sales from demand-test
+    // intent once some products become stocked.
+    fulfillable,
+    items: [toAnalyticsItem(product, { quantity, variant })],
+  });
+}
+
+/** Fired when a shopper leaves an email against an out-of-stock item. */
+export function trackWaitlistSignup(
+  product: WooProduct,
+  variant?: string,
+): void {
+  send("join_waitlist", {
+    currency: currencyOf(product),
+    value: toMajorUnits(product.prices.price, product.prices.currency_minor_unit),
+    items: [toAnalyticsItem(product, { quantity: 1, variant })],
+  });
+}

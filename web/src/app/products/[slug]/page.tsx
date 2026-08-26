@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { TrackViewItem } from "@/components/analytics/TrackView";
 import { AddToCartPanel } from "@/components/product/AddToCartPanel";
 import { Price } from "@/components/product/Price";
 import { ProductGallery } from "@/components/product/ProductGallery";
@@ -72,6 +73,8 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   return (
     <>
+      <TrackViewItem product={product} />
+
       <Container size="wide" className="py-8">
         <nav aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-2 text-sm text-ink-subtle" role="list">
@@ -106,7 +109,7 @@ export default async function ProductPage({ params }: { params: Params }) {
               {fields.badge ? <Badge tone="accent">{fields.badge}</Badge> : null}
               {product.on_sale ? <Badge tone="sale">On sale</Badge> : null}
               {!product.is_in_stock ? (
-                <Badge tone="muted">Sold out</Badge>
+                <Badge tone="muted">Coming soon</Badge>
               ) : null}
             </div>
 

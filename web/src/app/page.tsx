@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
+import { TrackViewItemList } from "@/components/analytics/TrackView";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { getFeaturedProducts, getShopConfig } from "@/lib/woo/products";
 import type { WooProduct } from "@/lib/woo/types";
@@ -101,7 +102,10 @@ export default async function HomePage() {
           </div>
 
           {featured.length ? (
-            <ProductGrid products={featured} className="mt-10" />
+            <>
+              <TrackViewItemList products={featured} listName="Featured" />
+              <ProductGrid products={featured} className="mt-10" />
+            </>
           ) : (
             <p className="mt-10 rounded-card border border-dashed border-line-strong px-6 py-16 text-center text-sm text-ink-muted">
               No featured products yet. Mark some as featured in WooCommerce, or

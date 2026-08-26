@@ -1,3 +1,4 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Archivo, Libre_Caslon_Text } from "next/font/google";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -69,6 +70,7 @@ export default async function RootLayout({
   }
 
   const siteName = config?.site.name ?? "Spiritual Gifts";
+  const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
     <html lang="en" className={`${display.variable} ${body.variable}`}>
@@ -96,6 +98,10 @@ export default async function RootLayout({
 
           <CartDrawer />
         </CartProvider>
+
+        {/* Absent in local dev unless the id is set, so test traffic stays out
+            of the property that decides the buying list. */}
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
     </html>
   );

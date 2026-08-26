@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { TrackViewItemList } from "@/components/analytics/TrackView";
 import { ProductFilters } from "@/components/product/ProductFilters";
 import { ProductGrid } from "@/components/product/ProductGrid";
 import { ButtonLink } from "@/components/ui/Button";
@@ -120,6 +121,10 @@ async function Results({
 
       {products.items.length ? (
         <>
+          <TrackViewItemList
+            products={products.items}
+            listName={category ? `Category: ${category}` : "All products"}
+          />
           <ProductGrid products={products.items} className="mt-10" />
           <Pagination
             page={page}

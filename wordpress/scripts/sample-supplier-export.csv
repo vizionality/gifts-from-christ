@@ -1,0 +1,6 @@
+Item Number,Item Name,Long Description,Suggested Retail,Your Price,Department,Manufacturer
+SAMPLE-TS-1001,"Example Graphic Tee","FABRICATED SAMPLE ROW - not real supplier data. Shows the expected column shape only.",24.99,11.50,Apparel,Example Supplier
+SAMPLE-TS-1002,"Example Hoodie","FABRICATED SAMPLE ROW - replace this file with your own wholesale export.",49.99,23.00,Apparel,Example Supplier
+SAMPLE-JW-2001,"Example Pendant Necklace","FABRICATED SAMPLE ROW. Column names are matched loosely, so your export's own headers should work as-is.",19.99,8.75,Jewelry,Example Supplier
+SAMPLE-DR-3001,"Example Insulated Tumbler","FABRICATED SAMPLE ROW.",29.99,13.25,Drinkware,Example Supplier
+SAMPLE-HT-4001,"Example Embroidered Cap","FABRICATED SAMPLE ROW.",22.99,10.00,Headwear,Example Supplier
