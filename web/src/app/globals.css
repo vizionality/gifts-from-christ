@@ -56,8 +56,8 @@
 
   --font-sans: var(--font-body), ui-sans-serif, system-ui, -apple-system,
     "Segoe UI", sans-serif;
-  --font-display: var(--font-display), ui-serif, Georgia, "Times New Roman",
-    serif;
+  --font-display: var(--font-display-face), ui-serif, Georgia,
+    "Times New Roman", serif;
 
   --shadow-card: var(--shadow-sm);
   --shadow-float: var(--shadow-md);
@@ -98,7 +98,9 @@
   h3 {
     font-family: var(--font-display);
     font-weight: 400;
-    letter-spacing: -0.015em;
+    /* Caslon is already narrow-set; the tighter tracking that suited a modern
+       variable serif closes it up too far at display sizes. */
+    letter-spacing: -0.005em;
   }
 
   /* One consistent focus ring, visible against both themes. */

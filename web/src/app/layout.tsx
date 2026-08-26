@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import { Archivo, Libre_Caslon_Display } from "next/font/google";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -9,14 +9,22 @@ import { getCategories, getShopConfig } from "@/lib/woo/products";
 import type { WooTerm } from "@/lib/woo/types";
 import "./globals.css";
 
-const display = Fraunces({
+/**
+ * Caslon is not a decorative choice: the shop sells letterpress prints that
+ * are hand-set in it, so the storefront is set in the same face it sells.
+ * Single weight (400), which is all the headings ask for.
+ */
+const display = Libre_Caslon_Display({
   subsets: ["latin"],
-  variable: "--font-display",
+  weight: "400",
+  // Named for the face, not the role: the role token --font-display is built
+  // from this in globals.css, and a shared name would be a circular var().
+  variable: "--font-display-face",
   display: "swap",
-  axes: ["SOFT", "WONK"],
 });
 
-const body = Inter({
+/** A grotesque with some grit in it, rather than the default UI sans. */
+const body = Archivo({
   subsets: ["latin"],
   variable: "--font-body",
   display: "swap",
