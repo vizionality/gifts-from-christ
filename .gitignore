@@ -1,0 +1,24 @@
+# Node
+node_modules/
+.pnp.*
+.yarn/
+
+# Next.js
+web/.next/
+web/out/
+web/next-env.d.ts
+web/tsconfig.tsbuildinfo
+
+# Env — never commit real secrets
+.env
+.env.local
+.env*.local
+
+# WordPress runtime (Docker volumes hold the real install)
+wordpress/wp-content/uploads/
+
+# OS / editor
+.DS_Store
+*.swp
+.idea/
+.vscode/

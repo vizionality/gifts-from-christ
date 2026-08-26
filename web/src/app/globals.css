@@ -1,0 +1,178 @@
+@import "tailwindcss";
+
+/*
+ * Semantic tokens rather than raw palette values. Components reference
+ * `bg-surface` / `text-ink`, and the dark theme is a single block of variable
+ * overrides — no `dark:` variant sprinkled through every component.
+ */
+:root {
+  --paper: #faf7f2;
+  --surface: #ffffff;
+  --surface-sunk: #f3ede4;
+  --ink: #1c1917;
+  --ink-muted: #57534e;
+  --ink-subtle: #8a8279;
+  --line: #e5ddd1;
+  --line-strong: #d3c8b6;
+  --accent: #8c5a3c;
+  --accent-hover: #74472d;
+  --accent-soft: #f0e4da;
+  --accent-ink: #fffaf5;
+  --sage: #5a6b57;
+  --danger: #9c3327;
+  --success: #3f6b4a;
+  --focus: #8c5a3c;
+  --shadow-sm: 0 1px 2px rgb(28 25 23 / 0.05);
+  --shadow-md: 0 8px 24px -12px rgb(28 25 23 / 0.18);
+  --shadow-lg: 0 24px 60px -24px rgb(28 25 23 / 0.28);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #14120f;
+    --surface: #1d1a16;
+    --surface-sunk: #262119;
+    --ink: #f5f0e8;
+    --ink-muted: #b8afa2;
+    --ink-subtle: #8d8478;
+    --line: #332d25;
+    --line-strong: #453d32;
+    --accent: #d09468;
+    --accent-hover: #e0a87e;
+    --accent-soft: #2c2219;
+    --accent-ink: #1a1410;
+    --sage: #9db396;
+    --danger: #e08479;
+    --success: #86b394;
+    --focus: #d09468;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.6);
+    --shadow-lg: 0 24px 60px -24px rgb(0 0 0 / 0.75);
+  }
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-sunk: var(--surface-sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-subtle: var(--ink-subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-sage: var(--sage);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+
+  --font-sans: var(--font-body), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", sans-serif;
+  --font-display: var(--font-display), ui-serif, Georgia, "Times New Roman",
+    serif;
+
+  --shadow-card: var(--shadow-sm);
+  --shadow-float: var(--shadow-md);
+  --shadow-overlay: var(--shadow-lg);
+
+  --radius-card: 0.5rem;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+
+  body {
+    background-color: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+
+  /* One consistent focus ring, visible against both themes. */
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background: var(--accent-soft);
+    color: var(--ink);
+  }
+}
+
+@layer components {
+  /* WordPress-authored HTML lands here; style it once rather than per page. */
+  .rich-text :where(p) {
+    margin-block: 1em;
+    line-height: 1.75;
+    color: var(--ink-muted);
+  }
+  .rich-text :where(p):first-child {
+    margin-block-start: 0;
+  }
+  .rich-text :where(ul, ol) {
+    margin-block: 1em;
+    padding-inline-start: 1.25em;
+    color: var(--ink-muted);
+    line-height: 1.75;
+  }
+  .rich-text :where(ul) {
+    list-style: disc;
+  }
+  .rich-text :where(ol) {
+    list-style: decimal;
+  }
+  .rich-text :where(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .rich-text :where(strong) {
+    color: var(--ink);
+    font-weight: 600;
+  }
+}
+
+/* Marquee for the announcement bar; pauses for reduced-motion users. */
+@keyframes sg-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-up {
+  animation: sg-fade-up 0.35s ease-out both;
+}
