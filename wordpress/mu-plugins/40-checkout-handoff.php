@@ -41,6 +41,10 @@ add_action(
 			return;
 		}
 
+		// Sets a cart cookie and issues a redirect; a cached copy would hand
+		// one shopper another shopper's cart.
+		nocache_headers();
+
 		if ( ! function_exists( 'WC' ) || ! WC()->cart ) {
 			headless_handoff_fail( 'woocommerce_unavailable' );
 		}
@@ -176,6 +180,15 @@ add_action(
 					),
 				),
 				'callback'            => static function ( WP_REST_Request $request ) {
+					/*
+					 * Managed hosts (WP Engine among them) cache /wp-json paths
+					 * they do not recognise. This response is per-order and
+					 * authorised only by the order key, so a cached copy could
+					 * be served to the wrong person. Refuse caching explicitly
+					 * rather than relying on a host-specific exclusion.
+					 */
+					nocache_headers();
+
 					$order = wc_get_order( absint( $request['number'] ) );
 
 					if ( ! $order || ! hash_equals( $order->get_order_key(), (string) $request->get_param( 'key' ) ) ) {

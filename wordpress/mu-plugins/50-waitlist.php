@@ -111,6 +111,9 @@ add_action(
 );
 
 function headless_waitlist_store( WP_REST_Request $request ) {
+	// A write endpoint behind a shared secret; never cache the response.
+	nocache_headers();
+
 	$email = sanitize_email( (string) $request->get_param( 'email' ) );
 
 	if ( ! is_email( $email ) ) {

@@ -145,6 +145,13 @@ add_action(
 				'methods'             => 'GET',
 				'permission_callback' => '__return_true',
 				'callback'            => static function () {
+					/*
+					 * Public marketing content with no per-visitor component,
+					 * so it is safe — and useful — to cache at the edge. The
+					 * short TTL keeps promo-bar edits from feeling stuck.
+					 */
+					header( 'Cache-Control: public, max-age=60, s-maxage=300' );
+
 					$hero = array();
 					$page = get_page_by_path( 'shop' );
 
