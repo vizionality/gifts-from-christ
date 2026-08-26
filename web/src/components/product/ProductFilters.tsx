@@ -161,8 +161,11 @@ function FilterChip({
       aria-pressed={active}
       className={cn(
         "rounded-full border px-4 py-1.5 text-sm transition-colors",
+        // Selection can no longer rely on a filled black pill, so it is carried
+        // by three cues at once: a pure-white fill against the warm paper
+        // background, a dark border, and heavier text.
         active
-          ? "border-ink bg-ink text-paper"
+          ? "border-ink bg-surface font-medium text-ink shadow-card"
           : "border-line-strong text-ink-muted hover:border-ink-subtle hover:text-ink",
       )}
     >

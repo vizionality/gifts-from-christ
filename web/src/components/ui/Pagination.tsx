@@ -77,10 +77,12 @@ function PageLink({
   label: string;
 }) {
   const className = cn(
-    "flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-sm transition-colors",
+    // Every state carries a border so the current page does not shift the row
+    // by two pixels when it gains one.
+    "flex h-9 min-w-9 items-center justify-center rounded-full border px-3 text-sm transition-colors",
     current
-      ? "bg-ink text-paper"
-      : "text-ink-muted hover:bg-surface-sunk hover:text-ink",
+      ? "border-ink bg-surface font-medium text-ink shadow-card"
+      : "border-transparent text-ink-muted hover:bg-surface-sunk hover:text-ink",
     disabled && "pointer-events-none opacity-30",
   );
 
