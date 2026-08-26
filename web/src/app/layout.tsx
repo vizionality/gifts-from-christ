@@ -6,6 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { PromoBar } from "@/components/layout/PromoBar";
 import { CartProvider } from "@/lib/cart/store";
+import { SITE_URL } from "@/lib/env";
 import { getCategories, getShopConfig } from "@/lib/woo/products";
 import type { WooTerm } from "@/lib/woo/types";
 import "./globals.css";
@@ -40,6 +41,10 @@ export async function generateMetadata(): Promise<Metadata> {
   const name = config?.site.name ?? "Spiritual Gifts";
 
   return {
+    // Without this, Next cannot resolve relative Open Graph image paths and
+    // canonical URLs, and warns on every build.
+    metadataBase: new URL(SITE_URL),
+    alternates: { canonical: "/" },
     title: {
       default: name,
       template: `%s · ${name}`,

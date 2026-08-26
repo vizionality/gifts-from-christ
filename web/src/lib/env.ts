@@ -29,6 +29,22 @@ export function handoffSecret(): string {
   return required("WP_HANDOFF_SECRET", process.env.WP_HANDOFF_SECRET);
 }
 
+/**
+ * Canonical public origin of the storefront, e.g. https://giftsfromchrist.com.
+ * Used for metadataBase, canonical URLs, Open Graph and the sitemap.
+ *
+ * Falls back to Vercel's per-deployment URL so preview builds still emit
+ * absolute URLs, and finally to localhost for development.
+ */
+export const SITE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : "") ||
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "") ||
+  "http://localhost:3000"
+).replace(/\/$/, "");
+
 /** How long product data may be cached before Next revalidates it. */
 export const REVALIDATE_SECONDS = Number(
   process.env.NEXT_PUBLIC_REVALIDATE_SECONDS ?? 60,
