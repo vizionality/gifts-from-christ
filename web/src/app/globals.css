@@ -2,10 +2,20 @@
 
 /*
  * Semantic tokens rather than raw palette values. Components reference
- * `bg-surface` / `text-ink`, and the dark theme is a single block of variable
- * overrides — no `dark:` variant sprinkled through every component.
+ * `bg-surface` / `text-ink` and never a literal colour, so re-theming is a
+ * matter of editing this block alone.
+ *
+ * The site is deliberately light-only. `color-scheme: light` is what stops a
+ * dark-mode OS from darkening browser-native UI — the sort <select>, the
+ * search input, scrollbars, form autofill — which would otherwise appear as
+ * dark widgets stranded on a white page.
+ *
+ * A dark palette previously lived here behind `prefers-color-scheme: dark`;
+ * `git log -p src/app/globals.css` has it if it is ever wanted back.
  */
 :root {
+  color-scheme: light;
+
   --paper: #faf7f2;
   --surface: #ffffff;
   --surface-sunk: #f3ede4;
@@ -25,30 +35,6 @@
   --shadow-sm: 0 1px 2px rgb(28 25 23 / 0.05);
   --shadow-md: 0 8px 24px -12px rgb(28 25 23 / 0.18);
   --shadow-lg: 0 24px 60px -24px rgb(28 25 23 / 0.28);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #14120f;
-    --surface: #1d1a16;
-    --surface-sunk: #262119;
-    --ink: #f5f0e8;
-    --ink-muted: #b8afa2;
-    --ink-subtle: #8d8478;
-    --line: #332d25;
-    --line-strong: #453d32;
-    --accent: #d09468;
-    --accent-hover: #e0a87e;
-    --accent-soft: #2c2219;
-    --accent-ink: #1a1410;
-    --sage: #9db396;
-    --danger: #e08479;
-    --success: #86b394;
-    --focus: #d09468;
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.4);
-    --shadow-md: 0 8px 24px -12px rgb(0 0 0 / 0.6);
-    --shadow-lg: 0 24px 60px -24px rgb(0 0 0 / 0.75);
-  }
 }
 
 @theme inline {
