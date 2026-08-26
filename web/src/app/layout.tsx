@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Archivo, Libre_Caslon_Display } from "next/font/google";
+import { Archivo, Libre_Caslon_Text } from "next/font/google";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -12,11 +12,15 @@ import "./globals.css";
 /**
  * Caslon is not a decorative choice: the shop sells letterpress prints that
  * are hand-set in it, so the storefront is set in the same face it sells.
- * Single weight (400), which is all the headings ask for.
+ *
+ * The Text cut rather than Display: Display ships a single 400 weight, so
+ * bold headings would be a browser-synthesised smear. Text carries a drawn
+ * 700. Italic exists at 400 only, which is all the scripture line needs.
  */
-const display = Libre_Caslon_Display({
+const display = Libre_Caslon_Text({
   subsets: ["latin"],
-  weight: "400",
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
   // Named for the face, not the role: the role token --font-display is built
   // from this in globals.css, and a shared name would be a circular var().
   variable: "--font-display-face",

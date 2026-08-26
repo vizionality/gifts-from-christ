@@ -97,7 +97,9 @@
   h2,
   h3 {
     font-family: var(--font-display);
-    font-weight: 400;
+    /* A drawn 700 from the Text cut, not a synthesised bold — Libre Caslon
+       Display ships 400 alone and would have been faked by the browser. */
+    font-weight: 700;
     /* Caslon is already narrow-set; the tighter tracking that suited a modern
        variable serif closes it up too far at display sizes. */
     letter-spacing: -0.005em;
