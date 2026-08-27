@@ -58,6 +58,7 @@ wordpress/
     provision.sh              Idempotent install + configure
     seed.php                  Catalogue, images (GD, offline), ACF content
     import-supplier-csv.php   Supplier CSV -> out-of-stock products
+    check-backend.sh          Remote readiness check for a deployed backend
     sample-supplier-export.csv  Fabricated example showing the expected columns
 web/
   src/app/                    App Router pages + route handlers
