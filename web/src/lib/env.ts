@@ -5,9 +5,16 @@
 
 function required(name: string, value: string | undefined): string {
   if (!value) {
-    throw new Error(
-      `Missing environment variable ${name}. Copy .env.example to .env.local and fill it in.`,
-    );
+    // This throws during "Collecting page data", where the stack points at
+    // whichever route imported it first rather than at the real cause. Name
+    // the fix for both environments so the message is actionable wherever it
+    // surfaces.
+    const where = process.env.VERCEL
+      ? `Set it in Vercel: Project Settings > Environment Variables, then redeploy. ` +
+        `Remember to tick every environment you deploy to (Production, Preview, Development).`
+      : `Copy web/.env.example to web/.env.local and fill it in.`;
+
+    throw new Error(`Missing environment variable ${name}. ${where}`);
   }
   return value.replace(/\/$/, "");
 }
