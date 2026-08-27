@@ -37,6 +37,14 @@ export function Footer({
                   All products
                 </Link>
               </li>
+              <li>
+                <Link
+                  href="/journal"
+                  className="text-sm text-ink-muted transition-colors hover:text-ink"
+                >
+                  Gift guides
+                </Link>
+              </li>
               {categories.slice(0, 5).map((category) => (
                 <li key={category.id}>
                   <Link

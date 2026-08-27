@@ -24,6 +24,7 @@ export function Header({
       href: `/products?category=${category.slug}`,
       label: category.name,
     })),
+    { href: "/journal", label: "Gift guides" },
   ];
 
   return (
