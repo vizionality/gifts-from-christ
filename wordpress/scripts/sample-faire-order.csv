@@ -1,0 +1,5 @@
+Item Number,Item Name,Long Description,Suggested Retail,Your Price,Department,Manufacturer,Qty,Lead Time
+SAMPLE-FA-100,"Example Faith Tee — Stocked","FABRICATED SAMPLE ROW. Demonstrates a line you have physically received and can ship today.",26.99,12.50,Goddaughter,Example Supplier,6,"In stock — ships today if ordered by 2pm"
+SAMPLE-FA-101,"Example Cross Necklace — Stocked","FABRICATED SAMPLE ROW.",34.99,15.00,Godson,Example Supplier,4,
+SAMPLE-FA-102,"Example Journal — Low Stock","FABRICATED SAMPLE ROW. Quantity below the low-stock threshold so the urgency line renders.",22.99,10.25,Sponsor,Example Supplier,2,
+SAMPLE-FA-103,"Example Wall Art — Not Yet Ordered","FABRICATED SAMPLE ROW. No quantity, so it stays a demand-test listing.",48.00,21.00,Godparent,Example Supplier,,

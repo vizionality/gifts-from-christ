@@ -31,6 +31,8 @@ const COLUMN_ALIASES = array(
 	'category'    => array( 'category', 'department', 'product_category', 'class' ),
 	'image'       => array( 'image', 'image_url', 'imageurl', 'image_link', 'primary_image' ),
 	'brand'       => array( 'brand', 'manufacturer', 'vendor' ),
+	'stock'       => array( 'stock', 'quantity', 'qty', 'units', 'on_hand', 'inventory', 'stock_quantity' ),
+	'ships'       => array( 'ships', 'shipping_note', 'availability', 'lead_time' ),
 );
 
 /** Normalise a header cell so "Item Number" and "item_number" both match. */
@@ -79,9 +81,11 @@ $value_of = static function ( array $row, string $field ) use ( $index ) {
 	return isset( $index[ $field ] ) ? trim( (string) ( $row[ $index[ $field ] ] ?? '' ) ) : '';
 };
 
-$created = 0;
-$updated = 0;
-$skipped = 0;
+$created     = 0;
+$updated     = 0;
+$skipped     = 0;
+$in_stock    = 0;
+$demand_test = 0;
 
 while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	$sku  = $value_of( $row, 'sku' );
@@ -111,13 +115,34 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	}
 
 	/*
-	 * The point of the exercise: listed, priced, and visible, but explicitly
-	 * not purchasable. Stock management stays off so Woo does not treat this
-	 * as a temporary zero that backorders could satisfy.
+	 * Stock drives the whole model, so it is read from the data rather than a
+	 * flag: one CSV can carry stocked lines and demand-test lines together.
+	 *
+	 * With a quantity: real inventory. Stock management on, so Woo decrements
+	 * on each sale and takes the line out of stock when it runs out — which is
+	 * what makes "ships today" an honest claim rather than a hopeful one.
+	 *
+	 * Without one: listed, priced and visible but not purchasable. Management
+	 * stays off so Woo does not read the zero as a temporary dip that
+	 * backorders could satisfy.
 	 */
-	$product->set_manage_stock( false );
-	$product->set_stock_status( 'outofstock' );
+	$stock_raw = $value_of( $row, 'stock' );
+	$stocked   = ( '' !== $stock_raw && is_numeric( $stock_raw ) && (int) $stock_raw > 0 );
+
 	$product->set_backorders( 'no' );
+
+	if ( $stocked ) {
+		$quantity = (int) $stock_raw;
+		$product->set_manage_stock( true );
+		$product->set_stock_quantity( $quantity );
+		$product->set_stock_status( 'instock' );
+		// Surfaces "Only N left" on the product page once it gets low. Honest
+		// urgency: it only appears when the number is real.
+		$product->set_low_stock_amount( min( 3, $quantity ) );
+	} else {
+		$product->set_manage_stock( false );
+		$product->set_stock_status( 'outofstock' );
+	}
 
 	$category = $value_of( $row, 'category' );
 	if ( '' !== $category ) {
@@ -131,6 +156,26 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	}
 
 	$product_id = $product->save();
+
+	if ( $stocked ) {
+		++$in_stock;
+	} else {
+		++$demand_test;
+	}
+
+	/*
+	 * The delivery promise is the competitive argument, so give stocked lines
+	 * one by default. Only ever set when empty, so an edit in wp-admin sticks.
+	 */
+	if ( function_exists( 'update_field' ) ) {
+		$note = $value_of( $row, 'ships' );
+		if ( '' === $note && $stocked ) {
+			$note = 'In stock — ships next business day';
+		}
+		if ( '' !== $note && '' === (string) get_field( 'sg_shipping_note', $product_id ) ) {
+			update_field( 'sg_shipping_note', $note, $product_id );
+		}
+	}
 
 	// Kept for margin maths later; never exposed through the Store API.
 	update_post_meta( $product_id, '_sg_supplier', $supplier );
@@ -166,10 +211,12 @@ fclose( $handle );
 
 WP_CLI::success(
 	sprintf(
-		'%s import complete: %d created, %d updated, %d skipped. All listed as out of stock.',
+		'%s import complete: %d created, %d updated, %d skipped. %d stocked, %d listed for demand testing.',
 		$supplier,
 		$created,
 		$updated,
-		$skipped
+		$skipped,
+		$in_stock,
+		$demand_test
 	)
 );
