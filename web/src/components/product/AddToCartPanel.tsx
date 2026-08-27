@@ -64,6 +64,14 @@ export function AddToCartPanel({ product }: { product: WooProduct }) {
   const fulfillable = product.is_purchasable && product.is_in_stock;
   const needsOptions = variationAttributes.length > 0 && !allChosen;
 
+  /*
+   * Backordered lines are purchasable but not on a shelf. WooCommerce reports
+   * both is_in_stock and is_on_backorder as true, so the buying flow is the
+   * normal one — what changes is that the wait is stated up front rather than
+   * discovered in a confirmation email.
+   */
+  const backordered = fulfillable && product.is_on_backorder;
+
   /** Human-readable variant label for analytics, e.g. "Large / Navy". */
   const variantLabel = useMemo(() => {
     const parts = variationAttributes
@@ -201,6 +209,22 @@ export function AddToCartPanel({ product }: { product: WooProduct }) {
 
       {fulfillable ? (
         <>
+          {backordered ? (
+            <div className="rounded-card border border-line bg-surface-sunk px-4 py-3">
+              <p className="flex items-center gap-2 text-sm text-ink">
+                <span
+                  aria-hidden
+                  className="inline-block h-2 w-2 rounded-full bg-accent"
+                />
+                Pre-order
+              </p>
+              <p className="mt-1 text-sm text-ink-muted">
+                {fields.shipping_note ||
+                  "Ordered from the maker when you place it — allow 10 business days."}
+              </p>
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap items-center gap-3">
             <QuantityStepper
               value={quantity}
@@ -219,7 +243,9 @@ export function AddToCartPanel({ product }: { product: WooProduct }) {
                 ? "Select options"
                 : justAdded
                   ? "Added ✓"
-                  : "Add to cart"}
+                  : backordered
+                    ? "Pre-order"
+                    : "Add to cart"}
             </Button>
           </div>
 
@@ -241,7 +267,7 @@ export function AddToCartPanel({ product }: { product: WooProduct }) {
         />
       )}
 
-      {fields.shipping_note && fulfillable ? (
+      {fields.shipping_note && fulfillable && !backordered ? (
         <p className="text-sm text-ink-muted">{fields.shipping_note}</p>
       ) : null}
 

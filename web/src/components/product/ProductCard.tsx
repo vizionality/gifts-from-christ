@@ -35,6 +35,9 @@ export function ProductCard({
         )}
 
         <div className="pointer-events-none absolute left-3 top-3 flex flex-col items-start gap-1.5">
+          {product.is_on_backorder && product.is_in_stock ? (
+            <Badge tone="outline">Pre-order</Badge>
+          ) : null}
           {/* "Sold out" would be a false claim for a line we have never
               stocked. "Coming soon" is what is actually true. */}
           {soldOut ? (

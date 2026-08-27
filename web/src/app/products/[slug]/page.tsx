@@ -110,6 +110,9 @@ export default async function ProductPage({ params }: { params: Params }) {
             <div className="flex flex-wrap items-center gap-2">
               {fields.badge ? <Badge tone="accent">{fields.badge}</Badge> : null}
               {product.on_sale ? <Badge tone="sale">On sale</Badge> : null}
+              {product.is_on_backorder && product.is_in_stock ? (
+                <Badge tone="outline">Pre-order</Badge>
+              ) : null}
               {!product.is_in_stock ? (
                 <Badge tone="muted">Coming soon</Badge>
               ) : null}

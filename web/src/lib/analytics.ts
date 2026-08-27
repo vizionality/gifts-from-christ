@@ -20,7 +20,7 @@ type GtagArgs =
 declare global {
   interface Window {
     gtag?: (...args: GtagArgs) => void;
-    dataLayer?: unknown[];
+    dataLayer?: Record<string, unknown>[];
   }
 }
 
@@ -61,11 +61,33 @@ export function toAnalyticsItem(
   };
 }
 
+/*
+ * Which transport to use is decided at build time from the env vars rather
+ * than by sniffing globals. GTM defines window.gtag as well, so sniffing would
+ * make the two paths ambiguous and risk double-counting.
+ */
+const USE_GTM = Boolean(process.env.NEXT_PUBLIC_GTM_ID);
+
 function send(event: string, params: Record<string, unknown>): void {
-  if (typeof window === "undefined" || typeof window.gtag !== "function") {
+  if (typeof window === "undefined") return;
+
+  if (USE_GTM) {
+    window.dataLayer = window.dataLayer ?? [];
+
+    /*
+     * Clear before pushing. GTM's dataLayer merges rather than replaces, so
+     * without this the items from a previous event survive into the next one
+     * and a view_item arrives carrying the last add_to_cart's basket. It is
+     * the standard GA4-via-GTM ecommerce gotcha.
+     */
+    window.dataLayer.push({ ecommerce: null });
+    window.dataLayer.push({ event, ecommerce: params });
     return;
   }
-  window.gtag("event", event, params);
+
+  if (typeof window.gtag === "function") {
+    window.gtag("event", event, params);
+  }
 }
 
 function currencyOf(product: WooProduct): string {
@@ -124,6 +146,43 @@ export function trackAddToCart(
     // intent once some products become stocked.
     fulfillable,
     items: [toAnalyticsItem(product, { quantity, variant })],
+  });
+}
+
+/**
+ * Fired when a shopper commits to checkout. This is the deepest signal the
+ * storefront can see — WooCommerce owns everything past this point — so it is
+ * the bottom of the funnel for anything measured here.
+ */
+export function trackBeginCheckout(
+  lines: {
+    productId: number;
+    sku?: string;
+    name: string;
+    priceMinor: number;
+    quantity: number;
+    currency: { currency_code: string; currency_minor_unit: number };
+  }[],
+): void {
+  if (!lines.length) return;
+
+  const minorUnit = lines[0].currency.currency_minor_unit ?? 2;
+  const total = lines.reduce(
+    (sum, line) => sum + line.priceMinor * line.quantity,
+    0,
+  );
+
+  send("begin_checkout", {
+    currency: lines[0].currency.currency_code || "USD",
+    value: Number((total / 10 ** minorUnit).toFixed(minorUnit)),
+    items: lines.map((line) => ({
+      item_id: line.sku || String(line.productId),
+      item_name: line.name,
+      price: Number(
+        (line.priceMinor / 10 ** minorUnit).toFixed(minorUnit),
+      ),
+      quantity: line.quantity,
+    })),
   });
 }
 

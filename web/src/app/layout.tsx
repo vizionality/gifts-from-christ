@@ -1,4 +1,7 @@
-import { GoogleAnalytics } from "@next/third-parties/google";
+import {
+  GoogleAnalytics,
+  GoogleTagManager,
+} from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { Archivo, Libre_Caslon_Text } from "next/font/google";
 import { CartDrawer } from "@/components/cart/CartDrawer";
@@ -75,6 +78,8 @@ export default async function RootLayout({
   }
 
   const siteName = config?.site.name ?? "Gifts from Christ";
+  const gtmId = process.env.NEXT_PUBLIC_GTM_ID;
+  // Only used when GTM is absent; GTM is expected to own the GA4 tag.
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (
@@ -104,9 +109,14 @@ export default async function RootLayout({
           <CartDrawer />
         </CartProvider>
 
-        {/* Absent in local dev unless the id is set, so test traffic stays out
-            of the property that decides the buying list. */}
-        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
+        {/* Absent in local dev unless an id is set, so test traffic stays out
+            of the property that decides the buying list. GTM takes precedence:
+            loading both would fire every event twice. */}
+        {gtmId ? (
+          <GoogleTagManager gtmId={gtmId} />
+        ) : gaId ? (
+          <GoogleAnalytics gaId={gaId} />
+        ) : null}
       </body>
     </html>
   );

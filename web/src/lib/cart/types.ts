@@ -20,6 +20,8 @@ export interface CartLine {
   /** Selected attributes, e.g. { pa_size: "large" }. */
   variation: Record<string, string>;
   name: string;
+  /** Preferred as GA4 item_id, so the funnel keys on one identifier throughout. */
+  sku: string;
   slug: string;
   image: string | null;
   imageAlt: string;

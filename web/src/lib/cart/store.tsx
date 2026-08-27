@@ -146,6 +146,7 @@ function toLine(input: AddToCartInput): CartLine {
     variationId,
     variation,
     name: product.name,
+    sku: product.sku ?? "",
     slug: product.slug,
     image: image?.thumbnail ?? image?.src ?? null,
     imageAlt: image?.alt || product.name,

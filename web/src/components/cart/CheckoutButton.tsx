@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
+import { trackBeginCheckout } from "@/lib/analytics";
 import { useCart } from "@/lib/cart/store";
 
 /**
@@ -22,6 +23,20 @@ export function CheckoutButton({
   async function handleCheckout() {
     setPending(true);
     setError(null);
+
+    // Fired before the request, not after: this is the last moment the
+    // storefront controls, and a network failure should not erase the fact
+    // that the shopper committed.
+    trackBeginCheckout(
+      cart.lines.map((line) => ({
+        productId: line.productId,
+        sku: line.sku,
+        name: line.name,
+        priceMinor: line.priceMinor,
+        quantity: line.quantity,
+        currency: line.currency,
+      })),
+    );
 
     try {
       const response = await fetch("/api/checkout", {

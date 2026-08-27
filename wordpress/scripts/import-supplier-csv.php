@@ -86,6 +86,7 @@ $updated     = 0;
 $skipped     = 0;
 $in_stock    = 0;
 $demand_test = 0;
+$backordered = 0;
 
 while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	$sku  = $value_of( $row, 'sku' );
@@ -129,11 +130,29 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	$stock_raw = $value_of( $row, 'stock' );
 	$stocked   = ( '' !== $stock_raw && is_numeric( $stock_raw ) && (int) $stock_raw > 0 );
 
-	$product->set_backorders( 'no' );
+	/*
+	 * "backorder" in the quantity column means purchasable but not held: the
+	 * order is placed with the maker once the customer places theirs. Woo keeps
+	 * the line buyable and flags is_on_backorder, which the storefront renders
+	 * as a stated pre-order rather than a surprise in the confirmation email.
+	 */
+	$backorder = ( 0 === strcasecmp( $stock_raw, 'backorder' ) || 0 === strcasecmp( $stock_raw, 'preorder' ) );
 
-	if ( $stocked ) {
+	if ( $backorder ) {
+		$product->set_manage_stock( true );
+		$product->set_stock_quantity( 0 );
+		$product->set_stock_status( 'onbackorder' );
+		$product->set_backorders( 'notify' );
+	} else {
+		$product->set_backorders( 'no' );
+	}
+
+	if ( $backorder ) {
+		++$backordered;
+	} elseif ( $stocked ) {
 		$quantity = (int) $stock_raw;
 		$product->set_manage_stock( true );
+		$product->set_stock_status( 'instock' );
 		$product->set_stock_quantity( $quantity );
 		$product->set_stock_status( 'instock' );
 		// Surfaces "Only N left" on the product page once it gets low. Honest
@@ -157,9 +176,9 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 
 	$product_id = $product->save();
 
-	if ( $stocked ) {
+	if ( $stocked && ! $backorder ) {
 		++$in_stock;
-	} else {
+	} elseif ( ! $backorder ) {
 		++$demand_test;
 	}
 
@@ -169,7 +188,9 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	 */
 	if ( function_exists( 'update_field' ) ) {
 		$note = $value_of( $row, 'ships' );
-		if ( '' === $note && $stocked ) {
+		if ( '' === $note && $backorder ) {
+			$note = 'Ordered from the maker when you place it — allow 10 business days.';
+		} elseif ( '' === $note && $stocked ) {
 			$note = 'In stock — ships next business day';
 		}
 		if ( '' !== $note && '' === (string) get_field( 'sg_shipping_note', $product_id ) ) {
@@ -211,12 +232,13 @@ fclose( $handle );
 
 WP_CLI::success(
 	sprintf(
-		'%s import complete: %d created, %d updated, %d skipped. %d stocked, %d listed for demand testing.',
+		'%s import complete: %d created, %d updated, %d skipped. %d stocked, %d pre-order, %d listed for demand testing.',
 		$supplier,
 		$created,
 		$updated,
 		$skipped,
 		$in_stock,
+		$backordered,
 		$demand_test
 	)
 );
