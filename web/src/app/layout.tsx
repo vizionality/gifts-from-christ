@@ -38,7 +38,7 @@ const body = Archivo({
 
 export async function generateMetadata(): Promise<Metadata> {
   const config = await getShopConfig();
-  const name = config?.site.name ?? "Spiritual Gifts";
+  const name = config?.site.name ?? "Gifts from Christ";
 
   return {
     // Without this, Next cannot resolve relative Open Graph image paths and
@@ -74,7 +74,7 @@ export default async function RootLayout({
     }
   }
 
-  const siteName = config?.site.name ?? "Spiritual Gifts";
+  const siteName = config?.site.name ?? "Gifts from Christ";
   const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
   return (

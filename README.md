@@ -1,4 +1,4 @@
-# Spiritual Gifts — Headless WooCommerce Shop
+# Gifts from Christ — Headless WooCommerce Shop
 
 A headless storefront: **WordPress + WooCommerce + ACF** as the backend, **Next.js + Tailwind on Vercel** as the frontend.
 

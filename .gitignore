@@ -22,3 +22,6 @@ wordpress/wp-content/uploads/
 *.swp
 .idea/
 .vscode/
+
+# Deployment bundle: contains generated production secrets
+deploy/
