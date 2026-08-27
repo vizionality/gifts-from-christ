@@ -7,6 +7,7 @@ import { AddToCartPanel } from "@/components/product/AddToCartPanel";
 import { Price } from "@/components/product/Price";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductGrid } from "@/components/product/ProductGrid";
+import { ProductJsonLd } from "@/components/product/ProductJsonLd";
 import { Badge } from "@/components/ui/Badge";
 import { Container } from "@/components/ui/Container";
 import { toPlainText } from "@/lib/format";
@@ -73,6 +74,7 @@ export default async function ProductPage({ params }: { params: Params }) {
 
   return (
     <>
+      <ProductJsonLd product={product} />
       <TrackViewItem product={product} />
 
       <Container size="wide" className="py-8">
