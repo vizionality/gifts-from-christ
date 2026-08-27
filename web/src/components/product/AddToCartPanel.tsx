@@ -289,24 +289,33 @@ function UnstockedPanel({
 
   return (
     <div className="space-y-3">
+      {/*
+        Framing matters here. "Not in stock" reads as broken and bounces paid
+        traffic, which raises cost-per-click on Google since landing page
+        experience feeds Quality Score. "Arriving soon" is equally true and
+        reads as intentional. Nothing here claims the item can be bought.
+      */}
       <div className="flex items-center gap-2 text-sm text-ink-muted">
-        <span
-          aria-hidden
-          className="inline-block h-2 w-2 rounded-full bg-ink-subtle"
-        />
-        Not in stock yet
+        <span aria-hidden className="inline-block h-2 w-2 rounded-full bg-accent" />
+        Arriving for confirmation season
       </div>
 
       {!interested ? (
-        <Button
-          size="lg"
-          variant="secondary"
-          onClick={onInterest}
-          disabled={needsOptions}
-          className="w-full"
-        >
-          {needsOptions ? "Select options" : "Notify me when available"}
-        </Button>
+        <>
+          <Button
+            size="lg"
+            onClick={onInterest}
+            disabled={needsOptions}
+            className="w-full"
+          >
+            {needsOptions ? "Select options" : "Tell me when it lands"}
+          </Button>
+          <p className="text-sm text-ink-muted">
+            We&rsquo;re confirming the first run now. Leave your email and
+            you&rsquo;ll hear the day it&rsquo;s ready to ship &mdash; before it
+            goes public.
+          </p>
+        </>
       ) : (
         <form onSubmit={onSubmit} className="space-y-3">
           <label htmlFor="waitlist-email" className="sr-only">
