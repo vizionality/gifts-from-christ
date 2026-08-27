@@ -33,6 +33,8 @@ const COLUMN_ALIASES = array(
 	'brand'       => array( 'brand', 'manufacturer', 'vendor' ),
 	'stock'       => array( 'stock', 'quantity', 'qty', 'units', 'on_hand', 'inventory', 'stock_quantity' ),
 	'ships'       => array( 'ships', 'shipping_note', 'availability', 'lead_time' ),
+	'materials'   => array( 'materials', 'material', 'made_from', 'composition', 'fabric' ),
+	'dimensions'  => array( 'dimensions', 'size', 'measurements', 'dims' ),
 );
 
 /** Normalise a header cell so "Item Number" and "item_number" both match. */
@@ -183,6 +185,20 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	}
 
 	/*
+	 * Supplier-provided detail lands in the ACF fields that carry the product
+	 * page. Only written when empty, so anything rewritten by hand survives a
+	 * re-import — these are the fields worth editing.
+	 */
+	if ( function_exists( 'update_field' ) ) {
+		foreach ( array( 'materials' => 'sg_materials', 'dimensions' => 'sg_dimensions' ) as $column => $field ) {
+			$incoming = $value_of( $row, $column );
+			if ( '' !== $incoming && '' === (string) get_field( $field, $product_id ) ) {
+				update_field( $field, $incoming, $product_id );
+			}
+		}
+	}
+
+	/*
 	 * The delivery promise is the competitive argument, so give stocked lines
 	 * one by default. Only ever set when empty, so an edit in wp-admin sticks.
 	 */
@@ -203,6 +219,19 @@ while ( ( $row = fgetcsv( $handle ) ) !== false ) {
 	$cost = preg_replace( '/[^0-9.]/', '', $value_of( $row, 'cost' ) );
 	if ( '' !== $cost ) {
 		update_post_meta( $product_id, '_sg_wholesale_cost', $cost );
+
+		/*
+		 * Record the economics alongside the cost. Gross profit in dollars
+		 * matters more than margin percent when deciding what to advertise:
+		 * a 50% margin on a $16 necklace is $8, which will not cover the click
+		 * that sold it. None of this is exposed through the Store API.
+		 */
+		$retail = (float) $price;
+		$unit   = (float) $cost;
+		if ( $retail > 0 ) {
+			update_post_meta( $product_id, '_sg_gross_profit', round( $retail - $unit, 2 ) );
+			update_post_meta( $product_id, '_sg_margin_pct', round( ( ( $retail - $unit ) / $retail ) * 100, 1 ) );
+		}
 	}
 	$brand = $value_of( $row, 'brand' );
 	if ( '' !== $brand ) {
