@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
 import { trackAddToCart, trackWaitlistSignup } from "@/lib/analytics";
+import { variationAttributeKey } from "@/lib/woo/attributes";
 import { useCart } from "@/lib/cart/store";
 import { cn } from "@/lib/cn";
 import { acf, type WooProduct } from "@/lib/woo/types";
@@ -75,12 +76,15 @@ export function AddToCartPanel({ product }: { product: WooProduct }) {
     return parts.length ? parts.join(" / ") : undefined;
   }, [variationAttributes, selection]);
 
-  /** Woo expects taxonomy-prefixed attribute keys, e.g. attribute_pa_size. */
+  /**
+   * Woo keys variation attributes by taxonomy when there is one, and by the
+   * sanitised attribute name when there is not. See variationAttributeKey.
+   */
   function variationPayload(): Record<string, string> {
     const variation: Record<string, string> = {};
     for (const attribute of variationAttributes) {
       const chosen = selection[attribute.name];
-      if (chosen) variation[attribute.taxonomy ?? attribute.name] = chosen;
+      if (chosen) variation[variationAttributeKey(attribute)] = chosen;
     }
     return variation;
   }
