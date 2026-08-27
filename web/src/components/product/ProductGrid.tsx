@@ -6,10 +6,13 @@ export function ProductGrid({
   products,
   columns = 4,
   className,
+  listName = "Products",
 }: {
   products: WooProduct[];
   columns?: 3 | 4;
   className?: string;
+  /** Should match the name given to view_item_list for the same grid. */
+  listName?: string;
 }) {
   const cols =
     columns === 3
@@ -23,6 +26,8 @@ export function ProductGrid({
           key={product.id}
           product={product}
           priority={index < columns}
+          listName={listName}
+          index={index}
         />
       ))}
     </div>

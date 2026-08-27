@@ -1,12 +1,14 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
+import { useEffect, useRef } from "react";
 import { CartLineItem } from "@/components/cart/CartLineItem";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { CheckoutButton } from "@/components/cart/CheckoutButton";
 import { ButtonLink } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { trackViewCart } from "@/lib/analytics";
 import { useCart } from "@/lib/cart/store";
 import { lineKey } from "@/lib/cart/types";
 import { formatMoney } from "@/lib/format";
@@ -27,6 +29,15 @@ export function CartView() {
   const cart = useCart();
   const searchParams = useSearchParams();
   const handoffError = searchParams.get("cart_error");
+  const reported = useRef(false);
+
+  // Once per visit to the page, and only after the cart has hydrated —
+  // firing before that would report an empty cart every time.
+  useEffect(() => {
+    if (reported.current || !cart.hydrated || !cart.lines.length) return;
+    reported.current = true;
+    trackViewCart(cart.lines);
+  }, [cart.hydrated, cart.lines]);
 
   if (!cart.hydrated) {
     return (

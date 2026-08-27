@@ -104,7 +104,11 @@ export default async function HomePage() {
           {featured.length ? (
             <>
               <TrackViewItemList products={featured} listName="Featured" />
-              <ProductGrid products={featured} className="mt-10" />
+              <ProductGrid
+                products={featured}
+                className="mt-10"
+                listName="Featured"
+              />
             </>
           ) : (
             <p className="mt-10 rounded-card border border-dashed border-line-strong px-6 py-16 text-center text-sm text-ink-muted">

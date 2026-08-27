@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { TrackPurchase } from "@/components/analytics/TrackPurchase";
 import { ClearCartOnMount } from "@/components/cart/ClearCartOnMount";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container } from "@/components/ui/Container";
@@ -29,6 +30,7 @@ export default async function ConfirmationPage({
   return (
     <Container size="narrow" className="py-20">
       <ClearCartOnMount />
+      {order ? <TrackPurchase order={order} /> : null}
 
       <div className="text-center">
         <span

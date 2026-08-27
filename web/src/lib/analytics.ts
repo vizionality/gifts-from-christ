@@ -24,6 +24,35 @@ declare global {
   }
 }
 
+/** The subset of a cart line these events need, so the cart owns its own type. */
+export interface CartLineForAnalytics {
+  productId: number;
+  sku?: string;
+  name: string;
+  priceMinor: number;
+  quantity: number;
+  currency: { currency_code: string; currency_minor_unit: number };
+}
+
+function cartPayload(lines: CartLineForAnalytics[]): Record<string, unknown> {
+  const minorUnit = lines[0]?.currency.currency_minor_unit ?? 2;
+  const total = lines.reduce(
+    (sum, line) => sum + line.priceMinor * line.quantity,
+    0,
+  );
+
+  return {
+    currency: lines[0]?.currency.currency_code || "USD",
+    value: Number((total / 10 ** minorUnit).toFixed(minorUnit)),
+    items: lines.map((line) => ({
+      item_id: line.sku || String(line.productId),
+      item_name: line.name,
+      price: Number((line.priceMinor / 10 ** minorUnit).toFixed(minorUnit)),
+      quantity: line.quantity,
+    })),
+  };
+}
+
 export interface AnalyticsItem {
   item_id: string;
   item_name: string;
@@ -116,17 +145,6 @@ export function trackViewItemList(
   });
 }
 
-export function trackSelectItem(
-  product: WooProduct,
-  listName: string,
-  index: number,
-): void {
-  send("select_item", {
-    item_list_name: listName,
-    items: [toAnalyticsItem(product, { index })],
-  });
-}
-
 /**
  * The demand signal. Fired when a shopper asks for an item we cannot yet
  * fulfil, so it doubles as the ranking input for the first bulk order.
@@ -149,41 +167,61 @@ export function trackAddToCart(
   });
 }
 
+/** Fired when a product is clicked out of a grid, pairing with view_item_list. */
+export function trackSelectItem(
+  product: WooProduct,
+  listName: string,
+  index: number,
+): void {
+  send("select_item", {
+    item_list_name: listName,
+    items: [toAnalyticsItem(product, { index })],
+  });
+}
+
+/** Fired when the cart is opened, either the drawer or the full page. */
+export function trackViewCart(lines: CartLineForAnalytics[]): void {
+  if (!lines.length) return;
+  send("view_cart", cartPayload(lines));
+}
+
+/** Fired when a line is removed, so drop-off inside the cart is visible. */
+export function trackRemoveFromCart(line: CartLineForAnalytics): void {
+  send("remove_from_cart", cartPayload([line]));
+}
+
+/**
+ * Fired on the confirmation page. WooCommerce owns checkout, so this is the
+ * storefront's only view of completed revenue — and the number every ad
+ * platform ultimately optimises against.
+ */
+export function trackPurchase(order: {
+  number: string;
+  total: string;
+  currency: string;
+  items: { name: string; quantity: number; total: string }[];
+}): void {
+  send("purchase", {
+    transaction_id: order.number,
+    currency: order.currency || "USD",
+    value: Number(order.total) || 0,
+    items: order.items.map((item) => ({
+      item_name: item.name,
+      quantity: item.quantity,
+      // The order endpoint returns major units already, unlike the Store API.
+      price: Number(item.total) / Math.max(1, item.quantity),
+    })),
+  });
+}
+
 /**
  * Fired when a shopper commits to checkout. This is the deepest signal the
  * storefront can see — WooCommerce owns everything past this point — so it is
  * the bottom of the funnel for anything measured here.
  */
-export function trackBeginCheckout(
-  lines: {
-    productId: number;
-    sku?: string;
-    name: string;
-    priceMinor: number;
-    quantity: number;
-    currency: { currency_code: string; currency_minor_unit: number };
-  }[],
-): void {
+export function trackBeginCheckout(lines: CartLineForAnalytics[]): void {
   if (!lines.length) return;
-
-  const minorUnit = lines[0].currency.currency_minor_unit ?? 2;
-  const total = lines.reduce(
-    (sum, line) => sum + line.priceMinor * line.quantity,
-    0,
-  );
-
-  send("begin_checkout", {
-    currency: lines[0].currency.currency_code || "USD",
-    value: Number((total / 10 ** minorUnit).toFixed(minorUnit)),
-    items: lines.map((line) => ({
-      item_id: line.sku || String(line.productId),
-      item_name: line.name,
-      price: Number(
-        (line.priceMinor / 10 ** minorUnit).toFixed(minorUnit),
-      ),
-      quantity: line.quantity,
-    })),
-  });
+  send("begin_checkout", cartPayload(lines));
 }
 
 /** Fired when a shopper leaves an email against an out-of-stock item. */

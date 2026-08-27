@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { QuantityStepper } from "@/components/product/QuantityStepper";
+import { trackRemoveFromCart } from "@/lib/analytics";
 import { useCart } from "@/lib/cart/store";
 import { formatMoney } from "@/lib/format";
 import type { CartLine } from "@/lib/cart/types";
@@ -83,7 +84,11 @@ export function CartLineItem({
 
           <button
             type="button"
-            onClick={() => cart.remove(key)}
+            onClick={() => {
+              // Report before removing; afterwards the line is gone.
+              trackRemoveFromCart(line);
+              cart.remove(key);
+            }}
             className="text-xs text-ink-subtle underline underline-offset-2 transition-colors hover:text-danger"
           >
             Remove

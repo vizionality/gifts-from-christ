@@ -98,6 +98,8 @@ async function Results({
     );
   }
 
+  const listName = category ? `Category: ${category}` : "All products";
+
   /** Preserve every active filter when moving between pages. */
   function buildHref(nextPage: number): string {
     const query = new URLSearchParams();
@@ -121,11 +123,12 @@ async function Results({
 
       {products.items.length ? (
         <>
-          <TrackViewItemList
+          <TrackViewItemList products={products.items} listName={listName} />
+          <ProductGrid
             products={products.items}
-            listName={category ? `Category: ${category}` : "All products"}
+            className="mt-10"
+            listName={listName}
           />
-          <ProductGrid products={products.items} className="mt-10" />
           <Pagination
             page={page}
             totalPages={products.totalPages}

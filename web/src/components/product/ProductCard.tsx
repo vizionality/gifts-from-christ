@@ -1,5 +1,5 @@
 import Image from "next/image";
-import Link from "next/link";
+import { SelectItemLink } from "@/components/analytics/SelectItemLink";
 import { Badge } from "@/components/ui/Badge";
 import { Price } from "@/components/product/Price";
 import { acf, type WooProduct } from "@/lib/woo/types";
@@ -7,9 +7,14 @@ import { acf, type WooProduct } from "@/lib/woo/types";
 export function ProductCard({
   product,
   priority = false,
+  listName = "Products",
+  index = 0,
 }: {
   product: WooProduct;
   priority?: boolean;
+  /** Passed through to select_item so clicks tie back to the right list. */
+  listName?: string;
+  index?: number;
 }) {
   const fields = acf(product);
   const image = product.images[0];
@@ -52,9 +57,14 @@ export function ProductCard({
 
       <div className="mt-4 flex flex-1 flex-col">
         <h3 className="text-[17px] leading-snug text-ink">
-          <Link href={`/products/${product.slug}`} className="before:absolute before:inset-0">
+          <SelectItemLink
+            product={product}
+            listName={listName}
+            index={index}
+            className="before:absolute before:inset-0"
+          >
             {product.name}
-          </Link>
+          </SelectItemLink>
         </h3>
 
         {fields.tagline ? (

@@ -6,6 +6,7 @@ import { CartLineItem } from "@/components/cart/CartLineItem";
 import { CartNotices } from "@/components/cart/CartNotices";
 import { CheckoutButton } from "@/components/cart/CheckoutButton";
 import { ButtonLink } from "@/components/ui/Button";
+import { trackViewCart } from "@/lib/analytics";
 import { useCart } from "@/lib/cart/store";
 import { formatMoney } from "@/lib/format";
 import { lineKey } from "@/lib/cart/types";
@@ -13,6 +14,12 @@ import { lineKey } from "@/lib/cart/types";
 export function CartDrawer() {
   const cart = useCart();
   const panelRef = useRef<HTMLDivElement>(null);
+
+  // Report the cart contents each time the drawer opens.
+  useEffect(() => {
+    if (!cart.isOpen || !cart.lines.length) return;
+    trackViewCart(cart.lines);
+  }, [cart.isOpen, cart.lines]);
 
   // Close on Escape and trap the page scroll while open.
   useEffect(() => {
