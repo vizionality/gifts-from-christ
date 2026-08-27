@@ -25,6 +25,7 @@ which silently corrupts exactly the item-level data used to decide purchasing.
 | `begin_checkout` | checkout is clicked | fired before the request, so a network failure does not erase the commit |
 | `purchase` | the confirmation page loads | deduplicated by order number in `sessionStorage` |
 | `join_waitlist` | an email is submitted against an unstocked item | custom event, not GA4 standard |
+| `page_view` | a client-side route change | initial load is covered by the GA4 config tag; the first render is skipped to avoid doubling it |
 
 `item_id` prefers SKU over post ID, so one identifier follows a product through
 the whole funnel.
@@ -44,6 +45,19 @@ double-counting.
 | `NEXT_PUBLIC_GTM_ID` | GTM loads, events push to `dataLayer`. Takes precedence. |
 | `NEXT_PUBLIC_GA_ID` | Only used when GTM is unset; events call `gtag()`. |
 | neither | Events are no-ops. Keeps local browsing out of the property. |
+
+## Triggers
+
+Ten of the eleven tags fire on **Custom Event** triggers reading the dataLayer.
+The exception is the GA4 configuration tag, which fires on **Initialization —
+All Pages**: it is the tag that loads GA4, so it has to run on page load and
+before everything else. There is no dataLayer-driven alternative for it.
+
+This matters for `page_view` in particular. GTM's built-in Page View trigger
+fires on document load only, and in an App Router app almost all navigation is
+client-side — so relying on it would make every session look one page deep and
+attribute the whole visit to the landing page. The storefront pushes its own
+`page_view` on route change instead.
 
 ## Importing the GTM container
 

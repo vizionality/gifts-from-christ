@@ -3,7 +3,9 @@ import {
   GoogleTagManager,
 } from "@next/third-parties/google";
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { Archivo, Libre_Caslon_Text } from "next/font/google";
+import { TrackPageViews } from "@/components/analytics/TrackPageViews";
 import { CartDrawer } from "@/components/cart/CartDrawer";
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
@@ -107,6 +109,12 @@ export default async function RootLayout({
           />
 
           <CartDrawer />
+
+          {/* useSearchParams needs a Suspense boundary; it reports nothing
+              visual, so an empty fallback is correct. */}
+          <Suspense fallback={null}>
+            <TrackPageViews />
+          </Suspense>
         </CartProvider>
 
         {/* Absent in local dev unless an id is set, so test traffic stays out

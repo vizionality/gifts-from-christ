@@ -167,6 +167,38 @@ export function trackAddToCart(
   });
 }
 
+/**
+ * Client-side route change. GTM's Page View trigger only sees document loads,
+ * so without this every navigation after the first goes unreported.
+ *
+ * Sent as a plain dataLayer event rather than through the ecommerce wrapper,
+ * since it carries no items.
+ */
+export function trackPageView(path: string): void {
+  if (typeof window === "undefined") return;
+
+  const location = `${window.location.origin}${path}`;
+
+  if (USE_GTM) {
+    window.dataLayer = window.dataLayer ?? [];
+    window.dataLayer.push({
+      event: "page_view",
+      page_path: path,
+      page_location: location,
+      page_title: document.title,
+    });
+    return;
+  }
+
+  if (typeof window.gtag === "function") {
+    window.gtag("event", "page_view", {
+      page_path: path,
+      page_location: location,
+      page_title: document.title,
+    });
+  }
+}
+
 /** Fired when a product is clicked out of a grid, pairing with view_item_list. */
 export function trackSelectItem(
   product: WooProduct,

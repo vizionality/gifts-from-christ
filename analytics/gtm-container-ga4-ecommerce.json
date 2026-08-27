@@ -34,10 +34,10 @@
           }
         ],
         "firingTriggerId": [
-          "1"
+          "100"
         ],
         "tagFiringOption": "ONCE_PER_EVENT",
-        "notes": "Loads GA4. Must fire before any event tag."
+        "notes": "Loads GA4 on the Initialization trigger. This is the only page-based tag in the container; everything else fires on a dataLayer Custom Event."
       },
       {
         "accountId": "0",
@@ -344,16 +344,33 @@
         ],
         "tagFiringOption": "ONCE_PER_EVENT",
         "notes": "Email left against an unstocked item"
-      }
-    ],
-    "trigger": [
+      },
       {
         "accountId": "0",
         "containerId": "0",
-        "triggerId": "1",
-        "name": "All Pages",
-        "type": "PAGEVIEW"
-      },
+        "tagId": "101",
+        "name": "GA4 \u2014 page_view (route change)",
+        "type": "gaawe",
+        "parameter": [
+          {
+            "type": "TEMPLATE",
+            "key": "eventName",
+            "value": "page_view"
+          },
+          {
+            "type": "TAG_REFERENCE",
+            "key": "measurementId",
+            "value": "GA4 \u2014 Configuration"
+          }
+        ],
+        "firingTriggerId": [
+          "101"
+        ],
+        "tagFiringOption": "ONCE_PER_EVENT",
+        "notes": "Covers navigation after the first page. The configuration tag already sends a page_view on initial load, and the storefront skips its first render to avoid doubling it."
+      }
+    ],
+    "trigger": [
       {
         "accountId": "0",
         "containerId": "0",
@@ -578,6 +595,39 @@
           }
         ],
         "notes": "Email left against an unstocked item"
+      },
+      {
+        "accountId": "0",
+        "containerId": "0",
+        "triggerId": "100",
+        "name": "Initialization \u2014 All Pages",
+        "type": "INIT",
+        "notes": "Fires before every other trigger, so GA4 is loaded before any event tag runs."
+      },
+      {
+        "accountId": "0",
+        "containerId": "0",
+        "triggerId": "101",
+        "name": "CE \u2014 page_view",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              {
+                "type": "TEMPLATE",
+                "key": "arg0",
+                "value": "{{_event}}"
+              },
+              {
+                "type": "TEMPLATE",
+                "key": "arg1",
+                "value": "page_view"
+              }
+            ]
+          }
+        ],
+        "notes": "Client-side route change. GTM's Page View trigger only sees document loads."
       }
     ],
     "variable": [
